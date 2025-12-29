@@ -1,15 +1,78 @@
 import requests
 import re
-from requests_html import HTMLSession
-
+# from requests_html import HTMLSession
+from playwright.sync_api import sync_playwright
 def Get_booking_dest_id(Keyword):
-    session = HTMLSession()
-    url = 'https://www.booking.com/searchresults.en-gb.html?ss={}'.format(Keyword)
+    # print(Keyword)
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+                extra_http_headers={
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                        'accept-language': 'en-CA,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-US;q=0.6,zh-TW;q=0.5,ak;q=0.4,af;q=0.3,ckb;q=0.2,ja;q=0.1',
+                        'cache-control': 'no-cache',
+                        'ect': '4g',
+                        'pragma': 'no-cache',
+                        'priority': 'u=0, i',
+                        'sec-ch-ua': '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'document',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-site': 'none',
+                        'sec-fetch-user': '?1',
+                        'upgrade-insecure-requests': '1'}
+            )
+           
+            page = context.new_page()
+            url = f'https://www.booking.com/searchresults.en-gb.html?ss={Keyword}'
+            # print(url)
+            page.goto(url, wait_until='networkidle', timeout=30000)
+            # 等待页面加载完成
+            page.wait_for_load_state('networkidle')
+            
+            # 获取完整 HTML
+            get_html = page.content()
+            # with open('booking_page.html', 'w', encoding='utf-8') as f:
+            #     f.write(get_html)
+            print(f"页面加载成功，HTML 长度: {len(get_html)}")
+            
+            # 尝试多种正则模式提取 dest_id
+            patterns = [
+                r'"dest_id":(-?\d+)',
+                r'dest_id["\']?\s*[=:]\s*["\']?(-?\d+)',
+                r'destId["\']?\s*[=:]\s*["\']?(-?\d+)',
+                r'dest_id=(\-?\d+)&',
+            ]
+            
+            for pattern in patterns:
+                match = re.findall(pattern, get_html)
+                if match:
+                    dest_id = match[0]
+                    print(f"✓ 找到 dest_id: {dest_id}")
+                    browser.close()
+                    return dest_id
+            
+            print("✗ 未找到 dest_id，请检查正则表达式")
+            browser.close()
+            return None
+            
+    except Exception as e:
+        print(f"✗ 错误: {e}")
+        return None
+# def Get_booking_dest_id(Keyword):
+#     session = HTMLSession()
+#     url = 'https://www.booking.com/searchresults.en-gb.html?ss={}'.format(Keyword)
 
-    r = session.get(url)
-    get_html = r.html.html
-    dest_id=re.findall('dest_id=(.*?)&',get_html)[0]
-    return dest_id
+#     r = session.get(url)
+#     r.html.render(timeout=10)
+#     get_html = r.html.html
+#     print(get_html)
+#     print(r.status_code)
+#     dest_id=re.findall('dest_id=(.*?)&',get_html)[0]
+#     return dest_id
 
 def Get_booking_hotel(Keyword, checkin,checkout):
     dest_id=Get_booking_dest_id(Keyword)
@@ -136,7 +199,7 @@ def get_imageing2(keyword):
     # response = requests.post('https://www.ca.kayak.com/mvm/smartyv2/search', params=params, headers=headers)
     return response.json()['results']
 if __name__=='__main__':
-    aa=Get_booking_hotel('NewYork','2023-10-15','2023-10-16').json()
+    aa=Get_booking_hotel('Toronto','2025-12-30','2025-12-31').json()
     list_data=aa['data']['searchQueries']['search']['results']
     Hotel_name_list=[]#['displayName']['text']
     Location_list=[]#['location']['displayLocation']

@@ -19,7 +19,7 @@ def get_city_from_ip(ip):
         data = response.json()
         city = data.get("city", "Unknown")
         if city == "Unknown":
-            city = "Montreal"
+            city = "Toronto"
         if city =='Montréal':
             city ='Montreal'
         return city
