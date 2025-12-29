@@ -1,0 +1,17 @@
+version: "1.0"
+
+services:
+  flask:
+    build: .
+    container_name: tripedia-flask
+    environment:
+      MONGO_URI: mongodb://mongo:27017/Tripedia
+    ports:
+      - "6666:5000"
+    networks:
+      - mongoDB
+    restart: unless-stopped
+
+networks:
+  mongoDB:
+    external: true
