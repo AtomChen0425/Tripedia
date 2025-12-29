@@ -1,10 +1,11 @@
 from flask import Flask
+import os
 
-#this file is essential for decoupling the application logic
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/Tripedia"
+
+app.config["MONGO_URI"] = os.getenv(
+    "MONGO_URI",
+    "mongodb://mongo:27017/Tripedia" 
+)
+
 app.secret_key = "mysecretkey"
-
-
-
-
