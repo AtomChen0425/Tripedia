@@ -10,6 +10,9 @@ services:
       - "5858:5000"
     networks:
       - mongoDB
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
 
 networks:
