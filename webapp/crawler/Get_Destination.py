@@ -71,4 +71,4 @@ def get_destination_result(destination):
 if __name__=='__main__':
     html1=get_html('Montreal')
     result=Data_process(html1,'Montreal')
-    # print(result)
+    print(result)

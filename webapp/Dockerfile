@@ -1,5 +1,5 @@
 
-FROM python:3.11-slim-bullseye
+FROM mcr.microsoft.com/playwright/python:v1.41.0-jammy
 
 WORKDIR /app
 
